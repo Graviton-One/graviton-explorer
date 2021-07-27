@@ -4,8 +4,10 @@ pub mod proto;
 pub mod app;
 
 async fn greet(req: HttpRequest) -> impl Responder {
-    let name = req.match_info().get("name").unwrap_or("World");
-    format!("Hello {}!", &name)
+    // let name = req.match_info().get("name").unwrap_or("World");
+    // format!("Hello {}!", &name)
+    let balance = app::pool::PoolsProvider::get_pool_test().await.unwrap();
+    format!("{}", balance)
 }
 
 #[actix_web::main]

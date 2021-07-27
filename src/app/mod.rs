@@ -1,2 +1,2 @@
 pub mod node;
-mod pool;
+pub mod pool;

@@ -1,9 +1,20 @@
 use web3;
+// use web3::types::U256;
 
 enum ChainID {
     Ethereum = 1,
     Binance = 56,
     Fantom, // TODO
+}
+
+impl ChainID {
+    pub fn node_url(&self) -> String {
+        match self {
+            Self::Binance => String::from("https://bsc-dataseed1.binance.org"),
+            _ => unreachable!(),
+        }
+
+    }
 }
 
 enum DEXName {
@@ -29,9 +40,11 @@ pub struct DEXPools<'a> {
 
 
 
-pub struct PoolList;
+// pub struct PoolList;
 
-impl PoolList {
+mod list {
+    use super::*;
+
     const Uniswap: &'static DEXPools<'static> = &DEXPools {
         chain_id: ChainID::Ethereum,
         name: DEXName::Uniswap,
@@ -84,7 +97,7 @@ impl PoolList {
             },
         ],
     };
-    const Pancake: &'static DEXPools<'static> = &DEXPools {
+    pub const Pancake: &'static DEXPools<'static> = &DEXPools {
         chain_id: ChainID::Binance,
         name: DEXName::Pancake,
         pools: vec![
@@ -98,7 +111,7 @@ impl PoolList {
             },
         ],
     };
-
+}
     // const UNISWAP_GTON_USDC: &'static str = "0xE40a2eAB69D4dE66BcCb0Ac8E2517a230c6312E8";
     // const SUSHI_GTON_WETH: &'static str = "0xBA38eca6DFdB92EC605C4281C3944fCcD9DeC898";
     // const SPOOKY_GTON_USDC: &'static str = "0xcf9f857ffe6ff32b41b2a0d0b4448c16564886de";
@@ -109,16 +122,16 @@ impl PoolList {
     // const PANCAKE_GTON_BUSD: &'static str = "0xbe2c760aE00CbE6A5857cda719E74715edC22279";
     // const PANCAKE_GTON_BNB: &'static str = "0xA216571b69dd69600F50992f7c23b07B1980CfD8";
 
-    pub fn get_all_gton() -> Vec<&'static DEXPools<'static>> {
-        return vec![
-            Self::Uniswap,
-            Self::Spooky,
-            Self::Sushi,
-            Self::Spirit,
-            Self::Pancake,
-        ]
-    }
-}
+//     pub fn get_all_gton() -> Vec<&'static DEXPools<'static>> {
+//         return vec![
+//             Self::Uniswap,
+//             Self::Spooky,
+//             Self::Sushi,
+//             Self::Spirit,
+//             Self::Pancake,
+//         ]
+//     }
+// }
 
 pub struct PoolReserves {
 
@@ -127,21 +140,42 @@ pub struct PoolReserves {
 pub struct PoolsProvider;
 
 impl PoolsProvider {
-    pub async fn get_pool_reserves() -> Result<(), Box<dyn std::error::Error>> {
-        let transport = web3::transports::Http::new("http://localhost:8545")?;
+    pub async fn get_pool_test() -> Result<u64, Box<dyn std::error::Error>> {
+        let bsc_gton_pool = &list::Pancake.pools[0];
+        let node_url = &list::Pancake.chain_id.node_url();
+
+        let transport = web3::transports::Http::new(node_url.as_str())?;
         let web3 = web3::Web3::new(transport);
     
         println!("Calling accounts.");
         let mut accounts = web3.eth().accounts().await?;
         println!("Accounts: {:?}", accounts);
-        accounts.push("00a329c0648769a73afac7f9381e08fb43dbea72".parse().unwrap());
+        accounts.push(bsc_gton_pool.address.parse().unwrap());
     
         println!("Calling balance.");
         for account in accounts {
             let balance = web3.eth().balance(account, None).await?;
             println!("Balance of {:?}: {}", account, balance);
+            return Ok(balance.as_u64());
         }
         
-        Ok(())
+        Ok(0)
     }
+    // pub async fn get_pool_reserves() -> Result<(), Box<dyn std::error::Error>> {
+    //     let transport = web3::transports::Http::new("http://localhost:8545")?;
+    //     let web3 = web3::Web3::new(transport);
+    
+    //     println!("Calling accounts.");
+    //     let mut accounts = web3.eth().accounts().await?;
+    //     println!("Accounts: {:?}", accounts);
+    //     accounts.push("00a329c0648769a73afac7f9381e08fb43dbea72".parse().unwrap());
+    
+    //     println!("Calling balance.");
+    //     for account in accounts {
+    //         let balance = web3.eth().balance(account, None).await?;
+    //         println!("Balance of {:?}: {}", account, balance);
+    //     }
+        
+    //     Ok(())
+    // }
 }
